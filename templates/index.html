@@ -1,0 +1,288 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- Leaflet -->
+  <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.4.4/proj4.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <!-- Button Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <!-- Custom markers -->  
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="static/css/StyleSheet.css?v=1.1"/> <!--External style sheets -->
+  <link rel="shortcut icon" href="#">
+</head>
+
+<body>
+  
+<div id="floor-buttons" class="btn-group-vertical">
+  <!-- floor switcher -->   
+</div>
+
+   
+<select id="mylist" name="filter_list" required onchange="filter()" style="display:none;">
+  <!-- landmark filter -->
+  <!-- calls filter function when any landmark type is selected -->
+  <option id="filter_for" value="" disabled selected>Search for...</option>
+  <option style="background: #6c757d; color: #fff;">None</option>
+  <option>Help Desk | Reception</option>
+  <option>Rooms</option>
+  <option>Security Room</option>
+  <option>Information Center</option>
+  <option>Transportation Service Till Building</option>
+  <option>lift</option>
+  <option>ramp</option>
+  <option>escalator</option>
+  <option>stairs</option>
+  <option>drinkingWater</option>
+  <option>kiosk</option>
+  <option>restRoom</option>
+  <option>Medical Room</option>
+  <option>Break Room</option>
+  <option>Change Room</option>
+  <option>Clock Room</option>
+  <option>Child | Baby Care</option>
+  <option>Food and Drinks</option>
+  <option>Trash Cans | Dustbin</option>
+</select>
+
+<select name="b_list" id="blist" onchange="select_building()" style="display:none;">
+  <!-- building filter -->
+  <!-- calls select_building function when a building is selected and the map of the building is loaded-->
+</select>
+
+<select name="venue_list" id="venue_list" onchange="select_venue()">
+  <!-- venue list (manually added)-->
+  <option id="filter_for_venue" value="" disabled selected>SELECT VENUE</option>
+  <option>IIT</option>
+  <option>AIIMS</option>
+  <option>UCL</option>
+  <option>Check</option>
+</select>
+
+<select name="building_list" id="building_list" onchange="select_build()" style="display:none;">
+  <!-- building list-->
+  <!-- a building within the same venue can be selected-->
+</select>
+
+<div id="map">
+  <div class="form-popup" id="myForm">
+    <div class="form-container" id="form-cont">
+      <h1>Add a review/ Report Problem</h1>
+      <div class="rate-container">
+        <div class="rating-head">Rate the place: </div>
+        <div class="rating">
+          <span><input type="radio" name="rating" id="str5" value="5"><label for="str5" style="font-size: 35px;">★</label></span>
+          <span><input type="radio" name="rating" id="str4" value="4"><label for="str4" style="font-size: 35px;">★</label></span>
+          <span><input type="radio" name="rating" id="str3" value="3"><label for="str3" style="font-size: 35px;">★</label></span>
+          <span><input type="radio" name="rating" id="str2" value="2"><label for="str2" style="font-size: 35px;">★</label></span>
+          <span><input type="radio" name="rating" id="str1" value="1"><label for="str1" style="font-size: 35px;">★</label></span>
+        </div>
+      </div>
+      <br><br>
+      <div class="review-container">Add a written review:<br><br></div>
+      <textarea id="comment" name="comment" rows="5" cols="60" placeholder="Add your comment here..." style="font-size: 16px;"></textarea><br><br>
+
+      <button id="camera" class="btn_camera" onclick="getcamera()"><i class="fa fa-camera fa-lg"></i></button>
+      <button id="audio" class="btn_audio" onclick="getaudio()"><i class="fa fas fa-microphone fa-lg"></i></button>       
+      <input type="file" accept="image/*" id="image-input" style="display: none;" onchange="readURL(this);">
+      <input type="file" accept="audio/*" id="audio-input" capture style="display: none;" onchange="playURL(event);"><br><br>
+      
+      <div class="ai-container">
+        <div class="image-container">
+          <div class="preview-image" style="display:none;">Preview of Photo:</div><br>
+          <button type="button" class="btn_remove_image" style="display:none;" id="removeImage">Remove</button><br><br>
+          <p><img id="pic" src=""/></p>
+        <div>
+
+        <div class="audio-container">
+          <div class="preview-audio" style="display:none;">Preview of Audio:</div><br>
+          <button type="button" class="btn_remove_audio" style="display:none;" id="removeAudio">Remove</button><br><br>
+          <audio id="audio_play" controls style="display:none;">
+            <source src="" id="src_audio" />
+          </audio>
+        <div>
+      </div>
+
+      <button type="button" class="btn_cancel" onclick="closef()">Close</button>
+      <button type="button" class="btn_submit" onclick="submitform()">Submit</button>
+    </div>  
+  </div>
+</div>
+
+<script>
+  document.getElementById("venue_list").selectedIndex = 0;
+
+  let venue_name = "UCL";
+  let buildingslist = [];
+  let buildingdata = [];
+  let building_name = "CSNew";
+  let cord_data;
+  
+  // doesn't display venue list if the building and venue is already selected and stored in local storage
+  if (localStorage.getItem("venue") != null) {
+    document.getElementById("venue_list").style.display = 'none';
+    select_venue();
+  }
+
+  // reloads the page
+  function load_script() {
+    location.reload(true);
+  }
+
+  // loads the convert.js script
+  function get_output_data() {
+    $.getScript("static/js/convert.js").done(function (script, textStatus) {
+      console.log("first");
+    });
+  }
+
+  // reference points for the building are read from the api and calls for get_output_data function
+  function get_reference_points() {
+    reference_url = "http://inclunav.apps.iitd.ac.in/node/wayfinding/v1/global-ref/" + venue_name + "/" + building_name + "/ground";
+    var settings1 = {
+      "url": reference_url,
+      "method": "GET",
+      "timeout": 0,
+    };
+    $.ajax(settings1).done(function (response) {
+      cord_data = response;
+      get_output_data();
+    });
+  }
+
+  // building data is read from api and calls for get_reference_points function
+  function getbuildingdata() {
+    building_url = "http://inclunav.apps.iitd.ac.in/node/wayfinding/v1/app/android-navigation/" + venue_name + "/" + building_name + "/null";
+    var settings1 = {
+      "url": building_url,
+      "method": "GET",
+      "timeout": 0,
+    };
+    $.ajax(settings1).done(function (response) {
+      get_reference_points();
+    });
+  }  
+  
+  // this function stores the selected venue and building in local storage and calls load_secript function
+  function select_building() {
+    var blist = document.getElementById("blist");
+    building_name = blist.options[blist.selectedIndex].text;
+    localStorage.setItem("building", building_name);
+    localStorage.setItem("venue", venue_name);
+    load_script();
+    console.log("yes");
+  }
+
+  // this filter is added to change the buildings within the same venue
+  function building_filter2() {
+    document.getElementById("mylist").style.display = "block";
+    var select = document.getElementById("blist");
+    select.options.length = 0;
+    select.style.display = "block";
+    var option = document.createElement("option");
+    option.text = "Search in " + venue_name;
+    option.disabled = true;
+    option.selected = true;
+    select.appendChild(option);
+    for (let i = 0; i < buildingslist.length; i++) {
+      var option = document.createElement("option");
+      option.text = buildingslist[i];
+      select.appendChild(option);
+    }
+  }
+
+
+  // once the building is selected, getbuildingdata function is called
+  function select_build() {
+    if (localStorage.getItem("building")) {
+      building_name = localStorage.getItem("building");
+      localStorage.removeItem("building");
+    }
+    else {
+      var blist = document.getElementById("building_list");
+      building_name = blist.options[blist.selectedIndex].text;
+      console.log(venue_name, building_name);
+      document.getElementById("venue_list").style.display = 'none';
+      document.getElementById("building_list").style.display = 'none';
+    } 
+    getbuildingdata();
+    building_filter2();
+    var f = "Search in " + building_name;
+    document.getElementById("filter_for").text = f;
+  }
+
+  // all the buildings in the venue are displayed 
+  function building_filter1() {
+    if (localStorage.getItem("building")) {
+      select_build();
+    }
+    else {
+      console.log("added");
+      var select = document.getElementById("building_list");
+      select.options.length = 0;
+      select.style.display = "block";
+      var option = document.createElement("option");
+      option.text = "SELECT BUILDING";
+      option.disabled = true;
+      option.selected = true;
+      select.appendChild(option);
+      for (let i = 0; i < buildingslist.length; i++) {
+        var option = document.createElement("option");
+        option.text = buildingslist[i];
+        select.appendChild(option);
+      }
+    }
+
+  }
+
+  // the data of the buildings present in the venue is read from api and stored in the building list and building_filter1 function is called
+  function start() {
+    console.log("here");
+    let venue_data = "{\n    \"venueName\":\"" + venue_name + "\"\n}";
+    let settings = {
+      "url": "http://inclunav.apps.iitd.ac.in/node/wayfinding/v1/app/building-list",
+      "method": "POST",
+      "timeout": 0,
+      "data": venue_data,
+      "contentType": "application/json",
+    };
+    $.ajax(settings).done(function (response) {
+      console.log(response);
+      for (let i = 0; i < response.data.length; i++) {
+        buildingslist.push(response.data[i].buildingName);
+        buildingdata.push(response.data[i])
+      }
+      building_filter1();
+    });
+  }
+
+  // venue is selected from the list or already selected and stored in localstorage and start function is called
+  function select_venue() {
+    if (localStorage.getItem("venue") != null) {
+      venue_name = localStorage.getItem("venue");
+      localStorage.removeItem("venue");
+    }
+    else {
+      var vlist = document.getElementById("venue_list");
+      venue_name = vlist.options[vlist.selectedIndex].text;
+    }
+    console.log(venue_name);
+    buildingslist = [];
+    buildingdata = [];
+    start();
+  }
+
+
+</script>  
+  
+</body>
+
+</html>
