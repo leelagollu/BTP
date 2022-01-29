@@ -1,1 +1,3 @@
 # BTP
+
+python main.py
