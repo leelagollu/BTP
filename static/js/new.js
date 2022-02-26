@@ -1,6 +1,6 @@
 // initialize Leaflet
-console.log(myJSON);
-console.log(myJSON_poly);
+// console.log(myJSON);
+// console.log(myJSON_poly);
 // get reference points from the api
 var coords = [];
 coords[0] = [parseFloat(cord_data['coordinates'][0]['globalRef']['lng']), parseFloat(cord_data['coordinates'][0]['globalRef']['lat'])];
@@ -10,7 +10,9 @@ coords[3] = [parseFloat(cord_data['coordinates'][3]['globalRef']['lng']), parseF
 // center of the building
 var centre = [(coords[0][0] + coords[2][0]) / 2, (coords[0][1] + coords[2][1]) / 2];
 
-var maplocation;
+console.log("reached here");
+var maplocation={'lat':centre[1],'lng':centre[0]};
+
 var building_marker=L.geoJson(myJSON,{
   filter: function (feature,layer) {
     return (feature.properties.floor == 'ground' && (feature.properties.type == 'main entry' || feature.properties.floorElement == 'Rooms'));
@@ -18,14 +20,18 @@ var building_marker=L.geoJson(myJSON,{
   pointToLayer: function (feature, latlng) {
       latlng['lat']=centre[1]
       latlng['lng']=centre[0]
-    maplocation=latlng;
+      maplocation=latlng;
     return L.marker(latlng,/*{icon:roomicon}*/);
   },
   onEachFeature: bindingPopup3
 });
 
+
+// L.marker({ lat: 28.545566236693578, lon: 77.19003561514704}).bindTooltip("Test Label", { permanent: true, direction: 'right'}).addTo(map);
+
 // set view of the map to the center of the building
 var map = L.map('map').setView([maplocation.lat, maplocation.lng], 20);
+
 
 var myStyle = { //Style to display the non-walkable linestrings 
   "color": "#000000",
@@ -67,6 +73,8 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 L.control.scale().addTo(map); // show the scale bar 
+
+
 
 //custom markers
 female_toileticon = L.divIcon({
