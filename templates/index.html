@@ -60,11 +60,11 @@
 
 <select name="venue_list" id="venue_list" onchange="select_venue()">
   <!-- venue list (manually added)-->
-  <option id="filter_for_venue" value="" disabled selected>SELECT VENUE</option>
+  <!-- <option id="filter_for_venue" value="" disabled selected>SELECT VENUE</option>
   <option>IIT</option>
   <option>AIIMS</option>
   <option>UCL</option>
-  <option>Check</option>
+  <option>Check</option> -->
 </select>
 
 <select name="building_list" id="building_list" onchange="select_build()" style="display:none;">
@@ -123,6 +123,7 @@
   let venue_name = "UCL";
   let buildingslist = [];
   let buildingdata = [];
+  let venuelist = [];
   let building_name = "CSNew";
   let cord_data;
   
@@ -225,7 +226,7 @@
       select_build();
     }
     else {
-      console.log("added");
+      console.log("added buildings");
       var select = document.getElementById("building_list");
       select.options.length = 0;
       select.style.display = "block";
@@ -255,7 +256,7 @@
       "contentType": "application/json",
     };
     $.ajax(settings).done(function (response) {
-      console.log(response);
+      // console.log(response);
       for (let i = 0; i < response.data.length; i++) {
         buildingslist.push(response.data[i].buildingName);
         buildingdata.push(response.data[i])
@@ -279,6 +280,48 @@
     buildingdata = [];
     start();
   }
+
+  function venue_filter(){
+    // console.log(venuelist);
+    if (localStorage.getItem("venue")) {
+      select_venue();
+    }
+    else {
+      console.log("added venues");
+      var select = document.getElementById("venue_list");
+      select.options.length = 0;
+      select.style.display = "block";
+      var option = document.createElement("option");
+      option.text = "SELECT VENUE";
+      option.disabled = true;
+      option.selected = true;
+      select.appendChild(option);
+      for (let i = 0; i < venuelist.length; i++) {
+        var option = document.createElement("option");
+        option.text = venuelist[i];
+        select.appendChild(option);
+      }
+    }
+  }
+
+  function get_venuelist(){
+    console.log("venue");
+    let settings = {
+      "url": "https://inclunav.apps.iitd.ac.in/node/wayfinding/v1/app/venue-list",
+      "method": "POST",
+      "timeout": 0,
+      "contentType": "application/json",
+    };
+    $.ajax(settings).done(function (response) {
+      // console.log(response);
+      for (let i = 0; i < response.data.length; i++) {
+        venuelist.push(response.data[i].venueName);
+      }
+      venue_filter();
+    });
+  }
+
+  get_venuelist();
 
 
 </script>  
