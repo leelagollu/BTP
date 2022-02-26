@@ -8,6 +8,9 @@ let floors;
 var myJSON;
 var myJSON_poly;
 
+//four corners
+var coords = [] 
+
 // loads new.js script
 function get_data(){
   console.log("entered");
@@ -16,8 +19,7 @@ function get_data(){
   });
 }
 
-//four corners
-var coords = [] 
+
 
 // get reference points from the api
 function getcoord(callbackFn){
@@ -284,10 +286,10 @@ function calculate_center(d,flength,i,l){
       x=x/numbers.length;
       y=y/numbers.length;
       // console.log(numbers);
-      console.log(x,y);
+      // console.log(x,y);
       for(let j=0;j<red_data.length;j++){
         if(red_data[j].name==d[i].name){
-          console.log("same");
+          // console.log("same");
           red_data[j].coordinateX=y;
           red_data[j].coordinateY=x;
         }
